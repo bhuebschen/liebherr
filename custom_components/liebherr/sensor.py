@@ -31,9 +31,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                         api, coordinator, appliance, control, 'current', '°C', SensorDeviceClass.TEMPERATURE, 'mdi:thermometer'))
                 case "autodoor":
                     entities.append(LiebherrSensor(
-                        api, coordinator, appliance, control, 'enabled', None, None, 'mdi:toggle-switch-off-outline'))
+                        api, coordinator, appliance, control, 'enabled', None, None, 'mdi:toggle-switch-off-outline', enabled_default = False))
                     entities.append(LiebherrSensor(
-                        api, coordinator, appliance, control, 'calibrated', None, None, 'mdi:door'))
+                        api, coordinator, appliance, control, 'calibrated', None, None, 'mdi:door', enabled_default = False))
                     entities.append(LiebherrSensor(
                         api, coordinator, appliance, control, 'doorState', None, None, 'mdi:door-open'))
                 case "hydrobreeze":
@@ -50,7 +50,7 @@ class LiebherrSensor(SensorEntity):
     """Representation of a Liebherr sensor entity."""
     should_poll = True
 
-    def __init__(self, api, coordinator, appliance, control, attribute, sensor_type, device_class, icon) -> None:
+    def __init__(self, api, coordinator, appliance, control, attribute, sensor_type, device_class, icon, enabled_default = True) -> None:
         """Initialize the sensor entity."""
         self._api = api
         self._coordinator = coordinator
@@ -65,6 +65,7 @@ class LiebherrSensor(SensorEntity):
         self._device_class = device_class
         self._icon = icon
         self._attr_state = None
+        self._attr_entity_registry_enabled_default = enabled_default
 
     @property
     def device_info(self):
