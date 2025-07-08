@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
-from .models import BaseToggleControlRequest, ZoneToggleControlRequest
+from .models import BaseToggleControlRequest, ZoneToggleControlRequest, IceMakerControlRequest
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,15 +30,11 @@ async def async_setup_entry(
             continue
 
         for control in controls:
-            if control["type"] in (
-                "ToggleControl"
-            ):  # ("toggle", "icemaker", "bottletimer"):
+            zone_id = control.get("zoneId") or 0
+            if control["type"] in ("ToggleControl"):
                 entities.extend(
                     [
-                        LiebherrSwitch(
-                            api, coordinator, appliance, control, control.get(
-                                "zoneId")
-                        ),
+                        LiebherrSwitch(api, coordinator, appliance, control, zone_id),
                     ]
                 )
 
@@ -57,7 +53,7 @@ class LiebherrSwitch(SwitchEntity):
         self._coordinator = coordinator
         self._appliance = appliance
         self._control = control
-        self._zoneId = control.get("zoneId", zoneId)
+        self._zoneId = zoneId
         self._identifier = (
             appliance.get("nickname") + "_" +
             control.get("name", control.get("type"))
@@ -66,8 +62,6 @@ class LiebherrSwitch(SwitchEntity):
             self._identifier += f"_{control['zonePosition']}"
         elif "zoneId" in control:
             self._identifier += f"_{control['zoneId']}"
-        self._appliance = appliance
-        self._zoneId = control.get("zoneId", zoneId)
         self._control_name = control.get("name")
         self._attr_name = appliance.get("nickname") + " " + control.get("name")
         if "zonePosition" in control:
@@ -75,21 +69,17 @@ class LiebherrSwitch(SwitchEntity):
         elif "zoneId" in control:
             self._attr_name += f" {control['zoneId']}"
         self._attr_unique_id = "liebherr_" + self._identifier
-        match control.get("name"):
-            case "supercool":
-                self._attr_icon = "mdi:snowflake"
-            case "superfrost":
-                self._attr_icon = "mdi:snowflake-variant"
-            case "partymode":
-                self._attr_icon = "mdi:party-popper"
-            case "holidaymode":
-                self._attr_icon = "mdi:beach"
-            case "nightmode":
-                self._attr_icon = "mdi:weather-night"
-            case "bottletimer":
-                self._attr_icon = "mdi:timer-sand"
-            case "icemaker":
-                self._attr_icon = "mdi:ice-cream"
+        self._attr_icon = self._get_icon(self._control_name.lower())
+
+    def _get_icon(self, name: str) -> str | None:
+        return {
+            "supercool": "mdi:snowflake",
+            "superfrost": "mdi:snowflake-variant",
+            "partymode": "mdi:party-popper",
+            "holidaymode": "mdi:beach",
+            "nightmode": "mdi:weather-night",
+            "bottletimer": "mdi:timer-sand",
+        }.get(name)
 
     @property
     def device_info(self):
@@ -120,7 +110,16 @@ class LiebherrSwitch(SwitchEntity):
                     if self._control_name == control.get("name"):
                         if self._zoneId == control.get("zoneId"):
                             _LOGGER.debug(control)
-                            return control.get("value", False)
+                            control_type = control.get("type")
+                            # Handle control types individually
+                            if control_type == "ToggleControl":
+                                return control.get("value") is True
+                            else:
+                                _LOGGER.warning(
+                                    "Unsupported control type '%s' for control '%s'",
+                                    control_type, self._control_name
+                                )
+                                return False
         return False
 
     def setControlValue(self, value):
@@ -152,11 +151,6 @@ class LiebherrSwitch(SwitchEntity):
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
-        if self._control["type"] == "IceMaker":
-            await self._api.set_value(
-                self._appliance["deviceId"] + "/" + self._control["name"],
-                {"iceMakerMode": "ON"},
-            )
         if self._control["type"] == "BottleTimer":
             await self._api.set_value(
                 self._appliance["deviceId"] + "/" + self._control["name"],
@@ -182,11 +176,6 @@ class LiebherrSwitch(SwitchEntity):
 
     async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
-        if self._control["type"] == "icemaker":
-            await self._api.set_value(
-                self._appliance["deviceId"] + "/" + self._control["name"],
-                {"iceMakerMode": "OFF"},
-            )
         if self._control["type"] == "bottletimer":
             await self._api.set_value(
                 self._appliance["deviceId"] + "/" + self._control["name"],
