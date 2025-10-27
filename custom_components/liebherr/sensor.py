@@ -172,7 +172,7 @@ class LiebherrSensor(SensorEntity):
 
     async def async_update(self):
         """Fetch new state data for the sensor."""
-        await asyncio.sleep(30)g
+        await asyncio.sleep(30)
         await self._coordinator.async_request_refresh()
 
     @property
