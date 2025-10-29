@@ -22,11 +22,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entitie
     api = hass.data[DOMAIN][config_entry.entry_id]["api"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
-    await asyncio.sleep(30)
     appliances = await api.get_appliances()
     entities = []
     for appliance in appliances:
-        await asyncio.sleep(30)
         controls = await api.get_controls(appliance["deviceId"])
         if not controls:
             _LOGGER.warning("No controls found for appliance %s",
@@ -122,7 +120,7 @@ class LiebherrClimate(ClimateEntity):
             )
 
             await self.api.set_value(self._appliance["deviceId"], "temperature", data)
-            await asyncio.sleep(30)
+            await asyncio.sleep(5)
             await self.coordinator.async_request_refresh()
 
     @property
@@ -186,10 +184,10 @@ class LiebherrClimate(ClimateEntity):
         """Set the HVAC mode."""
         if hvac_mode in self._attr_hvac_modes:
             self._attr_hvac_mode = hvac_mode
-            await asyncio.sleep(30)
+            await asyncio.sleep(5)
             await self.coordinator.async_request_refresh()
 
     async def async_update(self):
         """Fetch the latest data from the API."""
-        await asyncio.sleep(30)
+        await asyncio.sleep(5)
         await self.coordinator.async_request_refresh()
