@@ -19,12 +19,10 @@ async def async_setup_entry(
     """Set up Liebherr switches from a config entry."""
     api = hass.data[DOMAIN][config_entry.entry_id]["api"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
-    await asyncio.sleep(30)
     appliances = await api.get_appliances()
 
     entities = []
     for appliance in appliances:
-        await asyncio.sleep(30)
         controls = await api.get_controls(appliance["deviceId"])
         if not controls:
             _LOGGER.warning("No controls found for appliance %s",
@@ -155,19 +153,16 @@ class LiebherrSwitch(SwitchEntity):
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
         if self._control["type"] == "IceMaker":
-            await asyncio.sleep(30)
             await self._api.set_value(
                 self._appliance["deviceId"] + "/" + self._control["name"],
                 {"iceMakerMode": "ON"},
             )
         if self._control["type"] == "BottleTimer":
-            await asyncio.sleep(30)
             await self._api.set_value(
                 self._appliance["deviceId"] + "/" + self._control["name"],
                 {"bottleTimer": "ON"},
             )
         if self._control["type"] == "AutoDoor":
-            await asyncio.sleep(30)
             await self._api.set_value(
                 self._appliance["deviceId"] + "/" + self._control["name"],
                 {"bottleTimer": "ON"},
@@ -180,7 +175,6 @@ class LiebherrSwitch(SwitchEntity):
                     zoneId=self._control.get("zoneId"), value=True
                 )
 
-            await asyncio.sleep(30)
             await self._api.set_value(
                 self._appliance["deviceId"], self._control["name"], data
             )
@@ -195,7 +189,6 @@ class LiebherrSwitch(SwitchEntity):
                 {"iceMakerMode": "OFF"},
             )
         if self._control["type"] == "bottletimer":
-            await asyncio.sleep(30)
             await self._api.set_value(
                 self._appliance["deviceId"] + "/" + self._control["name"],
                 {"bottleTimer": "OFF"},
@@ -208,7 +201,6 @@ class LiebherrSwitch(SwitchEntity):
                     zoneId=self._control.get("zoneId"), value=False
                 )
 
-            await asyncio.sleep(30)
             await self._api.set_value(
                 self._appliance["deviceId"], self._control["name"], data
             )
