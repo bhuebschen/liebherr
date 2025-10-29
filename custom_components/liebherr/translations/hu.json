@@ -1,0 +1,32 @@
+{
+    "title": "Liebherr",
+    "options": {
+        "step": {
+            "init": {
+                "title": "Értesítések",
+                "description": "If you want to receive alerts and notifications for your Liebherr devices, please select the devices you want to receive notifications for.",
+                "description": "Ha értesítéseket szeretne kapni a Liebherr eszközeitől, kérem válassza ki, hogy mely eszközöktől szeretne értesítéseket kapni.",
+                "data": {
+                    "devices_to_notify": "Eszközök, melyektől értesítéseket szeretne kapni:"
+                }
+            }
+        }
+    },
+    "config": {
+        "step": {
+            "user": {
+                "description": "Connect your appliance via the **SmartDevice app** to your home WiFi network.\n\n**1. [Download](https://smartdevice.onelink.me/OrY5/8neax8lp) the app**\n**2. Follow the [instructions](https://go.liebherr.com/cb2ct1) to connect your appliance**\n**3. Get your API Key via the SmartDevice app**\n\nGo to *Settings* in the SmartDevice app and select **“Beta features”**, then activate the HomeAPI.\n\nCopy the API Key and paste it below. The API Key can only be copied **once**.\n\nAs soon as you leave the screen, the code **cannot** be copied again.\n\nIf you forgot your key, you need to create a new one via the app."
+                "description": "Csatlakoztassa az eszközeit a **SmartDevice alkalmazással** az otthoni WiFi hálózatához.\n\n**1. [Töltse le az alkalmazást](https://smartdevice.onelink.me/OrY5/8neax8lp)**\n**2. Kövesse az [instrukciókat](https://go.liebherr.com/cb2ct1) az eszköze csatlakoztatásához**\n**3. Szerezze meg az API Key-t a SmartDevice alkalmazásban**\n\nMenjen a *Beállítások* közé a SmartDevice alkalmazásban és válassza ki a **“Beta features”**-t, majd aktiválja a HomeAPI-t.\n\nMásolja le az API Key-t másolja be lejjebb. Az API Key csak **egyszer** másolható.\n\nAmint elhagyja a képernyőt, a Key **nem** másolható ismét.\n\nHa elfelejtette a Key-t, egy újat kell létrehoznia az alkalmazásban."
+            }
+        }
+    },
+    "notificationType": {
+        "door_alarm": "Ajtó Riasztás",
+        "auto_door_obstacle_alarm": "AutoDoor akadály érzékelhető",
+        "auto_door_overheat_alarm": "AutoDoor motor túlmelegedés",
+        "upper_power_failure_alarm": "Túláram riasztás",
+        "lower_power_failure_alarm": "Áramellátási zavar",
+        "upper_temperature_alarm": "Túlmelegedés riasztás",
+        "lower_temperature_alarm": "Túlhűlés riasztás"
+    }
+}
