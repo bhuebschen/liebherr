@@ -183,6 +183,7 @@ class LiebherrSwitch(SwitchEntity):
     async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
         if self._control["type"] == "icemaker":
+            await asyncio.sleep(30)
             await self._api.set_value(
                 self._appliance["deviceId"] + "/" + self._control["name"],
                 {"iceMakerMode": "OFF"},

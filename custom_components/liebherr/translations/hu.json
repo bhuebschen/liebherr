@@ -1,0 +1,30 @@
+{
+    "title": "Liebherr",
+    "options": {
+        "step": {
+            "init": {
+                "title": "Értesítések",
+                "description": "Ha értesítéseket és riasztásokat szeretne kapni a Liebherr berendezéseiről, kérem válassza ki a berendezéseket.",
+                "data": {
+                    "devices_to_notify": "Berendezések, melyekről értesítéseket szeretne kapni:"
+                }
+            }
+        }
+    },
+    "config": {
+        "step": {
+            "user": {
+                "description": "Csatlakoztassa a berendezését a **SmartDevice alkalmazás** segítségével az otthoni WiFi hálózathoz.\n\n**1. [Töltse le](https://smartdevice.onelink.me/OrY5/8neax8lp) az alkalmazást**\n**2. Kövesse az [utasításokat](https://go.liebherr.com/cb2ct1) a berendezése csatlakoztatásához**\n**3. Generáljon egy API Key-r a SmartDevice alkalmazásban**\n\nMenjen a *Beállítások* menübe a SmartDevice alkalmazásban és válassza ki a **“Beta features”** lehetőséget, ahol aktiválja a HomeAPI-t.\n\nMásolja ki az API Key-t és másolja be lent. Az API Key másolására **egy lehetősége** van.\n\nAhogy elhagyja a képernyőt, a kódhoz **nem tud hozzáférni** újból.\n\nHa elfelejti a kódot, egy újat kell létrehozni az alkalmazásban."
+            }
+        }
+    },
+    "notificationType": {
+        "door_alarm": "Ajtó Riasztás",
+        "auto_door_obstacle_alarm": "AutoDoor akadály",
+        "auto_door_overheat_alarm": "AutoDoor motor túlmelegedés",
+        "upper_power_failure_alarm": "Túláram",
+        "lower_power_failure_alarm": "Áramellátási zavar",
+        "upper_temperature_alarm": "Túlmelegedés",
+        "lower_temperature_alarm": "Fagyásveszély"
+    }
+}
