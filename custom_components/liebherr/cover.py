@@ -6,6 +6,7 @@ import logging
 from homeassistant.components.cover import CoverEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 
@@ -41,11 +42,12 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class LiebherrCover(CoverEntity):
+class LiebherrCover(CoordinatorEntity, CoverEntity):
     """Representation of a Liebherr cover entity."""
 
     def __init__(self, api, coordinator, appliance, control) -> None:
         """Initialize the cover entity."""
+        super().__init__(coordinator)
         self._api = api
         self._coordinator = coordinator
         self._appliance = appliance

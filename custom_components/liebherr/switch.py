@@ -6,6 +6,7 @@ import logging
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .models import BaseToggleControlRequest, ZoneToggleControlRequest
@@ -48,11 +49,12 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class LiebherrSwitch(SwitchEntity):
+class LiebherrSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of a Liebherr switch entity."""
 
     def __init__(self, api, coordinator, appliance, control, zoneId) -> None:
         """Initialize the switch entity."""
+        super().__init__(coordinator)
         self._api = api
         self._coordinator = coordinator
         self._appliance = appliance
@@ -144,6 +146,7 @@ class LiebherrSwitch(SwitchEntity):
             )
             if control:
                 control["value"] = value
+        self.async_write_ha_state()
 
     @property
     def available(self):

@@ -6,6 +6,7 @@ import logging
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .models import ModeControlRequest
@@ -41,11 +42,12 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class LiebherrSelect(SelectEntity):
+class LiebherrSelect(CoordinatorEntity, SelectEntity):
     """Representation of a Liebherr select entity."""
 
     def __init__(self, api, coordinator, appliance, control) -> None:
         """Initialize the select entity."""
+        super().__init__(coordinator)
         self._api = api
         self._coordinator = coordinator
         self._appliance = appliance

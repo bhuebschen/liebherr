@@ -5,6 +5,7 @@ import logging
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 
@@ -99,10 +100,8 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class LiebherrSensor(SensorEntity):
+class LiebherrSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Liebherr sensor entity."""
-
-    should_poll = True
 
     def __init__(
         self,
@@ -117,6 +116,7 @@ class LiebherrSensor(SensorEntity):
         enabled_default=True,
     ) -> None:
         """Initialize the sensor entity."""
+        super().__init__(coordinator)
         self._api = api
         self._coordinator = coordinator
         self._appliance = appliance
@@ -152,7 +152,12 @@ class LiebherrSensor(SensorEntity):
             _LOGGER.error("Coordinator data is empty")
             return None
 
-        return self._control.get(self._attribute)
+        for device in self._coordinator.data.get("appliances", []):
+            if device.get("deviceId") == self._appliance["deviceId"]:
+                for control in device.get("controls", []):
+                    if control.get("identifier", control["type"]) == self._identifier:
+                        return control.get(self._attribute)
+        return None
 
     @property
     def unit_of_measurement(self):
@@ -167,10 +172,6 @@ class LiebherrSensor(SensorEntity):
     def available(self):
         """Return True if the sensor is available."""
         return True
-
-    async def async_update(self):
-        """Fetch new state data for the sensor."""
-        await self._coordinator.async_request_refresh()
 
     @property
     def icon(self):
