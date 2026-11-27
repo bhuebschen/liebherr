@@ -10,6 +10,7 @@ from homeassistant.components.climate import (
 )
 from homeassistant.const import ATTR_TEMPERATURE
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .models import TemperatureControlRequest
@@ -22,10 +23,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entitie
     api = hass.data[DOMAIN][config_entry.entry_id]["api"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
-    appliances = await api.get_appliances()
+    appliances = coordinator.data["appliances"]
     entities = []
     for appliance in appliances:
-        controls = await api.get_controls(appliance["deviceId"])
+        controls = appliance["controls"]
         if not controls:
             _LOGGER.warning("No controls found for appliance %s",
                             appliance["deviceId"])
@@ -60,12 +61,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entitie
     async_add_entities(entities)
 
 
-class LiebherrClimate(ClimateEntity):
+class LiebherrClimate(CoordinatorEntity, ClimateEntity):
     """Representation of a Liebherr climate entity."""
 
     def __init__(self, coordinator, api, appliance, control, zoneId) -> None:
         """Initialize the climate entity."""
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self.api = api
         self._control = control
         self._identifier = (
@@ -186,8 +187,3 @@ class LiebherrClimate(ClimateEntity):
             self._attr_hvac_mode = hvac_mode
             await asyncio.sleep(5)
             await self.coordinator.async_request_refresh()
-
-    async def async_update(self):
-        """Fetch the latest data from the API."""
-        await asyncio.sleep(5)
-        await self.coordinator.async_request_refresh()

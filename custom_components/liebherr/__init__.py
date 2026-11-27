@@ -8,14 +8,15 @@ from pathlib import Path
 import ssl
 
 import aiofiles
-from aiohttp import ClientSession, TCPConnector
+import aiohttp
+from aiohttp import ClientSession, ClientTimeout, TCPConnector
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.device_registry as dr
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util.dt import as_local, parse_datetime
 
 # from homeassistant.core import __all__
@@ -50,7 +51,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     ###
     api.connector = TCPConnector(ssl=ssl_context)
 
-    api.session = ClientSession(connector=api.connector)
+    api.session = ClientSession(
+        connector=api.connector, timeout=ClientTimeout(total=10)
+    )
 
     async def async_update_method() -> None:
         """Fetch both appliances and notifications."""
@@ -69,9 +72,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 "appliances": appliances,
                 "notifications": filtered_notifications,
             }
-        except LiebherrUpdateException as e:
-            raise LiebherrUpdateException(
-                f"Error updating Liebherr data: {e}") from e
+        except (LiebherrUpdateException, aiohttp.ClientError, TimeoutError) as e:
+            raise UpdateFailed(f"Error updating Liebherr data: {e}") from e
         else:
             return combined_data
 
@@ -80,7 +82,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         _LOGGER,
         name="Liebherr devices",
         update_method=async_update_method,
-        update_interval=timedelta(seconds=10),
+        update_interval=timedelta(seconds=120),
     )
     _LOGGER.debug(
         "[LIEBHERR] Effective update interval: %s seconds",
@@ -92,10 +94,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         "coordinator": coordinator,
     }
 
-    await coordinator.async_refresh()
-
-    if not coordinator.data:
-        _LOGGER.warning("No initial data retrieved from Liebherr API")
+    # Raises ConfigEntryNotReady on failure -> HA retries setup in the
+    # background with backoff instead of holding up startup.
+    await coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(
         config_entry, ["climate", "switch", "select", "sensor", "cover"]
@@ -158,9 +159,8 @@ class LiebherrAPI:
 
         async with self.session.get(BASE_API_URL, headers=headers) as response:
             if response.status != 200:
-                _LOGGER.error("Failed to fetch appliances: %s",
-                              response.status)
-                return []
+                raise LiebherrUpdateException(
+                    f"Failed to fetch appliances: {response.status}")
 
             data = await response.json()
             _LOGGER.debug("Fetched appliances: %s", data)
@@ -189,12 +189,8 @@ class LiebherrAPI:
 
         async with self.session.get(url, headers=headers) as response:
             if response.status != 200:
-                _LOGGER.error(
-                    "Failed to fetch controls for device %s: %s",
-                    device_id,
-                    response.status,
-                )
-                return []
+                raise LiebherrUpdateException(
+                    f"Failed to fetch controls for device {device_id}: {response.status}")
             if response.status == 401:
                 _LOGGER.error("API-KEY provided is not valid")
                 return []

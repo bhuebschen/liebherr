@@ -6,6 +6,7 @@ import logging
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .models import ModeControlRequest
@@ -20,11 +21,11 @@ async def async_setup_entry(
     api = hass.data[DOMAIN][config_entry.entry_id]["api"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
 
-    appliances = await api.get_appliances()
+    appliances = coordinator.data["appliances"]
 
     entities = []
     for appliance in appliances:
-        controls = await api.get_controls(appliance["deviceId"])
+        controls = appliance["controls"]
         if not controls:
             _LOGGER.warning("No controls found for appliance %s",
                             appliance["deviceId"])
@@ -41,11 +42,12 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class LiebherrSelect(SelectEntity):
+class LiebherrSelect(CoordinatorEntity, SelectEntity):
     """Representation of a Liebherr select entity."""
 
     def __init__(self, api, coordinator, appliance, control) -> None:
         """Initialize the select entity."""
+        super().__init__(coordinator)
         self._api = api
         self._coordinator = coordinator
         self._appliance = appliance
