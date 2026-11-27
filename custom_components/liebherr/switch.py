@@ -19,11 +19,11 @@ async def async_setup_entry(
     """Set up Liebherr switches from a config entry."""
     api = hass.data[DOMAIN][config_entry.entry_id]["api"]
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
-    appliances = await api.get_appliances()
+    appliances = coordinator.data["appliances"]
 
     entities = []
     for appliance in appliances:
-        controls = await api.get_controls(appliance["deviceId"])
+        controls = appliance["controls"]
         if not controls:
             _LOGGER.warning("No controls found for appliance %s",
                             appliance["deviceId"])
